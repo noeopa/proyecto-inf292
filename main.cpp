@@ -5,11 +5,6 @@
 
 using namespace std;
 
-
-// ============================================================
-// GUARDAR INSTANCIA EN ARCHIVO
-// ============================================================
-
 void guardarInstancia(
     const Instancia& casa,
     int numeroInstancia
@@ -29,6 +24,10 @@ void guardarInstancia(
              << nombreArchivo << endl;
         return;
     }
+
+    // ============================================================
+    // DATOS GENERALES
+    // ============================================================
 
     archivo << "==============================" << endl;
     archivo << "DATOS DE LA INSTANCIA" << endl;
@@ -50,8 +49,65 @@ void guardarInstancia(
             << casa.elementos.size()
             << endl;
 
+
+    // ============================================================
+    // OBTENER CATALOGOS POR CATEGORIA
+    // ============================================================
+
+    map<string, vector<Alternativa>> catalogos;
+
+    for (const Elemento& elemento : casa.elementos) {
+
+        if (!elemento.fijo &&
+            catalogos.find(elemento.categoria) == catalogos.end()) {
+
+            catalogos[elemento.categoria] =
+                elemento.alternativas;
+        }
+    }
+
+
+    // ============================================================
+    // GUARDAR CATALOGOS UNA SOLA VEZ
+    // ============================================================
+
+    archivo << "\n==============================" << endl;
+    archivo << "CATALOGOS POR CATEGORIA" << endl;
+    archivo << "==============================" << endl;
+
+    for (const auto& par : catalogos) {
+
+        const string& categoria = par.first;
+        const vector<Alternativa>& alternativas = par.second;
+
+        archivo << "\n------------------------------" << endl;
+        archivo << "Categoria: " << categoria << endl;
+
+        archivo << "Cantidad de alternativas: "
+                << alternativas.size()
+                << endl;
+
+        for (const Alternativa& alternativa : alternativas) {
+
+            archivo
+                << "  "
+                << alternativa.nombre
+                << " | U: "
+                << alternativa.U
+                << " | Costo/m2: $"
+                << alternativa.costoM2
+                << endl;
+        }
+    }
+
+
+    // ============================================================
+    // ELEMENTOS
+    // ============================================================
+
     int cantidadFijos = 0;
     int cantidadOptimizables = 0;
+
     set<string> categorias;
 
     archivo << "\n==============================" << endl;
@@ -64,18 +120,33 @@ void guardarInstancia(
 
         archivo << "\n------------------------------" << endl;
 
-        archivo << "Nombre: " << elemento.nombre << endl;
-        archivo << "Categoria: " << elemento.categoria << endl;
-        archivo << "Area: " << elemento.area << " m2" << endl;
+        archivo << "Nombre: "
+                << elemento.nombre
+                << endl;
+
+        archivo << "Categoria: "
+                << elemento.categoria
+                << endl;
+
+        archivo << "Area: "
+                << elemento.area
+                << " m2"
+                << endl;
+
 
         if (elemento.fijo) {
 
             cantidadFijos++;
 
             archivo << "Tipo: FIJO" << endl;
-            archivo << "U fijo: " << elemento.Ufijo << endl;
+
+            archivo << "U fijo: "
+                    << elemento.Ufijo
+                    << endl;
+
             archivo << "Costo fijo/m2: $"
-                    << elemento.costoFijoM2 << endl;
+                    << elemento.costoFijoM2
+                    << endl;
         }
 
         else {
@@ -84,26 +155,20 @@ void guardarInstancia(
 
             archivo << "Tipo: OPTIMIZABLE" << endl;
 
+            archivo << "Catalogo utilizado: "
+                    << elemento.categoria
+                    << endl;
+
             archivo << "Cantidad de alternativas: "
                     << elemento.alternativas.size()
                     << endl;
-
-            archivo << "\nCatalogo:" << endl;
-
-            for (const Alternativa& alternativa :
-                 elemento.alternativas) {
-
-                archivo
-                    << "  "
-                    << alternativa.nombre
-                    << " | U: "
-                    << alternativa.U
-                    << " | Costo/m2: $"
-                    << alternativa.costoM2
-                    << endl;
-            }
         }
     }
+
+
+    // ============================================================
+    // RESUMEN
+    // ============================================================
 
     archivo << "\n==============================" << endl;
     archivo << "RESUMEN" << endl;
@@ -111,6 +176,10 @@ void guardarInstancia(
 
     archivo << "Categorias: "
             << categorias.size()
+            << endl;
+
+    archivo << "Catalogos generados: "
+            << catalogos.size()
             << endl;
 
     archivo << "Elementos totales: "
